@@ -1,20 +1,25 @@
 use std::fs::File;
-use std::io::{Read, BufReader, BufRead};
+use std::io::{BufReader, BufRead};
 use std::io;
 
 fn read_input(path: &str) -> io::Result<Vec<usize>> {
     let file = File::open(path)?;
-    
+
     let buf = BufReader::new(file);
 
-    // let mut data = vec![];
-    // file.read_to_end(&mut data)?;
+    let mut numbers = Vec::new();
+    for line in buf.lines() {
+        let line = line?;
+        let number = match line.parse::<usize>() {
+            Ok(n) => n,
+            Err(err) => {
+                panic!("failed to parse number {}: {}", line, err)
+            }
+        };
+        numbers.push(number);
+    }
 
-    Ok(buf.lines()
-    .map(|line| -> usize {
-        line.expect("Invalid line").parse::<usize>().expect("Invalid number")
-    })
-    .collect::<Vec<usize>>())
+    Ok(numbers)
 
 }
 
@@ -54,7 +59,7 @@ fn main() {
     let input = read_input("input.txt").unwrap();
 
     let compacted_data = get_compated_data(&input);
-        
+
     let count = count_depht_increase(&compacted_data);
     println!("Increases count with sliding window: {}", count);
 }
