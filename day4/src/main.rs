@@ -20,7 +20,6 @@ fn read_boards(raw_data: &str, size: usize) -> Vec<Board> {
     .collect()
 }
 
-// Return index of winner board
 fn play_game(boards: &Vec<Board>, numbers: &Vec<usize>) -> Option<(Board, usize)> {
     let mut my_boards: Vec<Board> = boards.into_iter().map(|b| b.clone()).collect();
 
@@ -34,6 +33,33 @@ fn play_game(boards: &Vec<Board>, numbers: &Vec<usize>) -> Option<(Board, usize)
     }
 
     None
+}
+
+fn play_game_win_last(boards: &Vec<Board>, numbers: &Vec<usize>) -> Option<(Board, usize)> {
+    let mut my_boards: Vec<Board> = boards.into_iter().map(|b| b.clone()).collect();
+
+    let mut last_wining_board: Option<Board> = None;
+    let mut wining_num: usize = 0;
+    for num in numbers.iter() {
+        for b in my_boards.iter_mut() {
+            if !b.is_bingo() { 
+                b.mark(num);
+            } else { 
+                continue;
+            }
+
+            if b.is_bingo() {
+                last_wining_board = Some(b.clone());
+                wining_num = num.clone();
+            }
+        }
+    }
+
+    match last_wining_board {
+        Some(b) => Some((b, wining_num)),
+        None => None
+    }
+
 }
 
 
@@ -125,8 +151,11 @@ impl Board {
 fn main() {
     let numbers = read_numbers(NUMBERS);
     let boards = read_boards(BOARDS, 5);
-    // line
     let (board, number) = play_game(&boards, &numbers).unwrap();
+    println!("Sum {}, number {}, result {}", board.count_unmarked(), number, board.count_unmarked() * number);
+
+
+    let (board, number) = play_game_win_last(&boards, &numbers).unwrap();
     println!("Sum {}, number {}, result {}", board.count_unmarked(), number, board.count_unmarked() * number);
 }
 
@@ -178,6 +207,20 @@ mod tests {
         let (board, number) = play_game(&boards, &numbers).unwrap();
         assert_eq!(board.count_unmarked(), 188);
         assert_eq!(number, 24);
+    }
+
+    #[test]
+    fn test_play_game_win_last_example() {
+        let numbers = vec![7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1];
+
+        let boards = read_boards(
+            BOARDS_TEST,
+            5
+        );
+        // line
+        let (board, number) = play_game_win_last(&boards, &numbers).unwrap();
+        assert_eq!(board.count_unmarked(), 148);
+        assert_eq!(number, 13);
     }
 
 }
